@@ -14,8 +14,85 @@
 
 # 출력1: 첫째 줄에서 문제에서 주어진 걸리는 날 출력
 
-R,C = map(int,input().split())
-l = []
+import sys
+import collections
+R, C = map(int, sys.stdin.readline().split(" "))
+
+lake = []
+dx = [1,-1,0,0]
+dy = [0,0,1,-1]
+
+swans = []
+waters = []
+visited = [[0 for i in range(C)] for i in range(R)]
+
+# 입력
 for i in range(R):
-    l.append(list(input()))
-print(l)
+    line = input()
+
+    for j in range(C):
+        if line[j] == 'L':
+            swans.append((i, j))
+            waters.append((i,j))
+
+        if line[j] == '.':
+            waters.append((i,j))
+    lake.append(list(line))
+
+def melt_ice():
+    new_water= []
+    global waters
+    
+    for water in waters:
+        y, x = water
+        for i in range(4):
+            t_y, t_x = y + dy[i], x + dx[i]
+
+            if t_y < R and t_x < C and t_y >= 0 and t_x >= 0:
+                if lake[t_y][t_x] == 'X':
+                    lake[t_y][t_x] = '.'
+                    new_water.append((t_y,t_x))
+    waters = new_water
+
+def check(q):
+    next_q = collections.deque()
+    while q:
+        y, x = q.popleft()
+        visited[y][x] = 1
+
+        for i in range(4):
+            n_y, n_x = y+dy[i], x+dx[i]
+            if n_y < 0 or n_y >= R or n_x < 0 or n_x >= C: continue
+            if(visited[n_y][n_x] == 1):  continue
+
+            visited[n_y][n_x] = 1
+            if lake[n_y][n_x] == 'L':
+                return True, next_q
+
+            if lake[n_y][n_x] == '.':
+                q.append((n_y, n_x))
+    
+            if lake[n_y][n_x] == 'X': 
+                next_q.append((n_y, n_x))
+    return False, next_q
+
+q = collections.deque()
+q.append(swans[0])
+
+count = 0
+
+while True:
+    success, q = check(q)
+
+    if success:
+        break
+    count += 1
+    melt_ice()
+
+#     print("lake")
+#     for i in range(R):
+#         for j in range(C):
+#             print(lake[i][j], end='')
+#         print()
+
+print(count)
